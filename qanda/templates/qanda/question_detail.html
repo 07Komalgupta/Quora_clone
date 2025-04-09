@@ -1,0 +1,68 @@
+{% extends 'qanda/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ question.title }}{% endblock %}
+
+{% block content %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="mb-0">{{ question.title }}</h2>
+        </div>
+        <div class="card-body">
+            <p>{{ question.content }}</p>
+            <div class="question-info">
+                <p class="text-muted">
+                    Asked by {{ question.author.username }} on {{ question.date_posted|date:"F d, Y" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-4">{{ question.answers.count }} Answers</h3>
+
+    {% for answer in question.answers.all %}
+        <div class="answer-container mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <p>{{ answer.content }}</p>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">
+                            Answered by {{ answer.author.username }} on {{ answer.date_posted|date:"F d, Y" }}
+                        </small>
+                        <div>
+                            {% if user.is_authenticated %}
+                                <span class="like-btn {% if user in answer.likes.all %}liked{% endif %}" data-answer-id="{{ answer.id }}">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <span class="likes-count ml-1">{{ answer.likes.count }}</span>
+                                </span>
+                            {% else %}
+                                <i class="fas fa-thumbs-up text-muted"></i>
+                                <span class="ml-1">{{ answer.likes.count }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">No answers yet. Be the first to answer!</div>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4>Your Answer</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'post-answer' question.id %}">
+                    {% csrf_token %}
+                    {{ answer_form|crispy }}
+                    <button type="submit" class="btn btn-primary mt-3">Post Answer</button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            Please <a href="{% url 'login' %}">login</a> to answer this question.
+        </div>
+    {% endif %}
+{% endblock %}

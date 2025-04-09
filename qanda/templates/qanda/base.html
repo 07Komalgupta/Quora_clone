@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quora Clone - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            padding-top: 56px;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #aa2200 !important;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .question-title {
+            color: #2b6dad;
+            text-decoration: none;
+        }
+        .question-title:hover {
+            color: #aa2200;
+            text-decoration: none;
+        }
+        .question-info {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .answer-container {
+            border-left: 3px solid #aa2200;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        .like-btn {
+            cursor: pointer;
+            user-select: none;
+            color: #6c757d;
+            transition: color 0.2s;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .like-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        .like-btn.liked {
+            color:rgb(254, 55, 5);
+        }
+        .like-btn.liked i {
+            transform: scale(1.1);
+        }
+        .btn-primary {
+            background-color: #aa2200;
+            border-color: #aa2200;
+        }
+        .btn-primary:hover {
+            background-color: #8a1c00;
+            border-color: #8a1c00;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">Quora</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'post-question' %}">Ask Question</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('.like-btn').click(function(){
+                var answerId = $(this).data('answer-id');
+                var likeButton = $(this);
+                
+                $.ajax({
+                    url: '{% url "like-answer" %}',
+                    type: 'POST',
+                    data: {
+                        'answer_id': answerId,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(data){
+                        if(data.liked){
+                            likeButton.addClass('liked');
+                        } else {
+                            likeButton.removeClass('liked');
+                        }
+                        likeButton.find('.likes-count').text(data.likes_count);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error liking answer:", error);
+                    }
+                });
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

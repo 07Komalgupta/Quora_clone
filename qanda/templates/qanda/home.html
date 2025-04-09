@@ -1,0 +1,96 @@
+{% extends 'qanda/base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Welcome to Quora</h1>
+        <p class="lead">A place to ask questions and get answers from the community</p>
+        {% if user.is_authenticated %}
+            <a class="btn btn-primary" href="{% url 'post-question' %}">Ask a Question</a>
+        {% else %}
+            <a class="btn btn-primary mr-2" href="{% url 'login' %}">Login</a>
+            <a class="btn btn-outline-primary" href="{% url 'register' %}">Register</a>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <h2 class="mb-4">Recent Questions</h2>
+            {% for question in questions %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'question-detail' question.id %}" class="question-title">{{ question.title }}</a>
+                        </h5>
+                        <p class="card-text">{{ question.content|truncatechars:150 }}</p>
+                        <p class="question-info">
+                            Asked by {{ question.author.username }} on {{ question.date_posted|date:"F d, Y" }}
+                            <span class="ml-2">
+                                <i class="fas fa-comment"></i> {{ question.answers.count }} answers
+                            </span>
+                        </p>
+                        <a href="{% url 'question-detail' question.id %}" class="btn btn-sm btn-outline-primary">View Question</a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="alert alert-info">No questions yet. Be the first to ask!</div>
+            {% endfor %}
+
+            {% if is_paginated %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">About</h5>
+                </div>
+                <div class="card-body">
+                    <p>Quora Clone is a platform where you can:</p>
+                    <ul>
+                        <li>Ask questions</li>
+                        <li>Answer questions</li>
+                        <li>Like helpful answers</li>
+                        <li>Share your knowledge</li>
+                    </ul>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-block">Join Now</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
